@@ -17,6 +17,15 @@ source: https://gist.github.com/tanmaykm/5111225
 
 		</style>
 		<script>
+			
+			function log_msg(msg) {
+				console.log( msg);
+			}
+			var s; //socket object for connection
+
+			// 將每個格子防禦力初始化為0
+			let arr = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+			
 			function start(){
 				//   按下 start 後 id 為 timer 的 DIV 內容可以開始倒數到到 0。 
 					var timer = document.querySelector("#timer");
@@ -27,17 +36,10 @@ source: https://gist.github.com/tanmaykm/5111225
 						number = 0;
 						timer.innerText = number + 0 }, 1000);
 			}
-			function log_msg(msg) {
-				console.log( msg);
-			}
-			var s; //socket object for connection
-			var a = 0;
-			box[25] = "1";
-			var box_id;
-			//defense = 0;
+
 			function doInit() {
 				try {
-					var host = "ws://localhost:4040/"; //設定socker server的ip:port
+					var host = "ws://10.99.1.195:4040/"; //設定socker server的ip:port
 
 					s = new WebSocket(host); //建立socket元件
 					//設定幾個主要事件
@@ -52,99 +54,94 @@ source: https://gist.github.com/tanmaykm/5111225
 						//用, 來切割訊息
 						strs = e.data.split(',');
 						//解讀各段訊息的內容
-						cellID=strs[0]; //個子的ID
+						cellID=strs[0]; //格子的ID
 						cellSign=strs[1]; //使用的符號
-						setCell(cellID,cellSign) //改格子的符號
+						cellcolor=strs[2]; //格子的顏色
+						setCell(cellID,cellSign,cellcolor) //改格子的防禦值和顏色
 					};
 				} catch (ex) {
 					log_msg("connection exception:" + ex);
 				}	 
 				//defense = 0;
+
 				//取得class是 "cell" 的元件
 				const cells = document.querySelectorAll(".cell");
+
 				//逐一設定onclick事件
-				
-				
 				cells.forEach(function(el) {
 					el.onclick=function() { 
 						id=this.id;
-						box_id = id - '0';
-						//if(this.innerHTML == "0") { //若格子尚未被選
-							//取得使用的顏色
-							let mySign = document.getElementById('sign').value;
-							let color = document.getElementById(id).style.backgroundColor;
+						//取得使用的顏色
+						let mySign = document.getElementById('sign').value;
+						//取得當前格子顏色
+						let color = document.getElementById(id).style.backgroundColor;
 
-							//const a = cells[0].value;
-							if (a == 0){
-								document.getElementById(id).style.backgroundColor = "weight";
+						//選黃色的client
+						if(mySign == "yellow"){   
+							if(arr[id] == 0){
+								arr[id] = arr[id] + 1;
+								//將格子變黃色
+								document.getElementById(id).style.backgroundColor = "yellow";
 							}
-							// else{
-							// 	if(document.getElementById(id).style.backgroundColor == "yellow"){
-							// 		a = a + 1;
-							// 	}
-							// 	else if (document.getElementById(id).style.backgroundColor == "blow"){
-							// 		a = a - 1;
-							// 	}
-							// }
-							if(mySign == "yellow"){   //選黃色
-								document.getElementById(id).style.backgroundColor = "yellow";  //將格子變黃
-								if(a >= 0){
-									if(color == "yellow"){
-										a = a + 1;
-									}
-									else if(color == "blue"){
-										a = a - 1;
-									}
-								}
+							//點自己防禦力加 1
+							else if(color == "yellow"){
+								arr[id] = arr[id] + 1;
 							}
-							else if(mySign == "blue"){
-								if(a >= 0){
-									//box[box_id] = box[box_id] + 1;
-									document.getElementById(id).style.backgroundColor = "blue"
-									if(color == "blue"){
-										a = a + 1;
-									}
-									else if(color == "yellow"){
-										a = a - 1;
-									}
-								}
-								//a = a + 1;
+							//點敵人防禦力減 1
+							else if(color == "blue"){
+								arr[id] = arr[id] - 1;
+							}	
+						}
+
+						//選藍色的client
+						else if(mySign == "blue"){
+							if(arr[id] == 0){
+								arr[id] = arr[id] + 1;
+								document.getElementById(id).style.backgroundColor = "blue";  //將格子變黃
 							}
-							// if(a >= 0){
-							// 	if(mySign == "yellow"){
-							// 	//box[id] = box[id] + 1;
-							// 	a = a + 1;
-							// 	document.getElementById(id).style.backgroundColor = "yellow"
-							// 	//const cells = document.querySelectorAll(".user1");
-							// 	}
-							// 	else if(mySign == "blue"){
-							// 		a = a + 1;
-							// 		document.getElementById(id).style.backgroundColor = "blue"
-							// 	}
-							// }
-							
-							//防禦力加 1
-							
-							//把格子id跟使用的符號傳給socket server
-							//s.send(id+","+mySign);
-							s.send(id+","+ a);
-						//}
+							else if(color == "blue"){
+								arr[id] = arr[id] + 1;
+							}
+							else if(color == "yellow"){
+								arr[id] = arr[id] - 1;
+							}
+						}
+						//防禦力為0，格子變白
+						if(arr[id] == 0){
+							document.getElementById(id).style.backgroundColor = "white";  //將格子變白
+						}
+						let final_color = document.getElementById(id).style.backgroundColor;
+						console.log(final_color)
+						//把格子id跟防禦值傳給socket server
+						s.send(id+","+ arr[id]);
+					//}
 					}
 				});
 			}
 			
 			//設定格子的符號
-			function setCell(id,sign) {
+			function setCell(id,sign,final_color) {
 				document.getElementById(id).innerHTML = sign;
+				document.getElementById(id).style.backgroundColor = final_color;
 				
-				//document.querySelectorAll(id) = 
 			}
+
 		</script>		
 	</head>
 <body onload="doInit()">
-	搶地遊戲<br/>
-	請選擇輸入yellow或blue ： <input type='text' value='' id='sign'>
 
+	即時點擊搶地遊戲<br/><br/>
+	遊戲規則：<br/>
+	兩人對戰，畫面顯示一個至少5*5的棋盤(表格)<br/>
+	玩家選擇 "黃色" 或 "藍色" 作為自己的土地顏色。<br/>
+	限時30秒，啟動後，兩人點擊表格來占地。<br/>
+	點擊空白格子則佔領(防禦值 1)<br/>
+	點擊自己格子，該格防禦+1<br/>
+	點擊對方佔領格子，該格防禦-1，減到0則該格變空白<br/>
+	時間到看誰佔地多。<br/><br/>
+
+	請選擇輸入yellow或blue ： <input type='text' value='' id='sign'><br/><br/>
+	倒計時:
 	<div id="timer">
 		30
 	</div>
