@@ -8,6 +8,7 @@ source: https://gist.github.com/tanmaykm/5111225
 <html>
   <head>
 		<title>Websocket Demo</title>
+		
 		<style>
 			.cell {
 				border: solid 5px #ba16ac;
@@ -16,10 +17,24 @@ source: https://gist.github.com/tanmaykm/5111225
 
 		</style>
 		<script>
+			function start(){
+				//   按下 start 後 id 為 timer 的 DIV 內容可以開始倒數到到 0。 
+					var timer = document.querySelector("#timer");
+					var number = 30;
+					setInterval(function(){
+						number -- ;
+						if(number <= 0 )
+						number = 0;
+						timer.innerText = number + 0 }, 1000);
+			}
 			function log_msg(msg) {
 				console.log( msg);
 			}
 			var s; //socket object for connection
+			var a = 0;
+			box[25] = "1";
+			var box_id;
+			//defense = 0;
 			function doInit() {
 				try {
 					var host = "ws://localhost:4040/"; //設定socker server的ip:port
@@ -44,20 +59,76 @@ source: https://gist.github.com/tanmaykm/5111225
 				} catch (ex) {
 					log_msg("connection exception:" + ex);
 				}	 
-				
+				//defense = 0;
 				//取得class是 "cell" 的元件
 				const cells = document.querySelectorAll(".cell");
 				//逐一設定onclick事件
+				
+				
 				cells.forEach(function(el) {
 					el.onclick=function() { 
 						id=this.id;
-						//console.log(id);
-						if(this.innerHTML=='0') { //若格子尚未被選
-							//取得使用的符號
+						box_id = id - '0';
+						//if(this.innerHTML == "0") { //若格子尚未被選
+							//取得使用的顏色
 							let mySign = document.getElementById('sign').value;
+							let color = document.getElementById(id).style.backgroundColor;
+
+							//const a = cells[0].value;
+							if (a == 0){
+								document.getElementById(id).style.backgroundColor = "weight";
+							}
+							// else{
+							// 	if(document.getElementById(id).style.backgroundColor == "yellow"){
+							// 		a = a + 1;
+							// 	}
+							// 	else if (document.getElementById(id).style.backgroundColor == "blow"){
+							// 		a = a - 1;
+							// 	}
+							// }
+							if(mySign == "yellow"){   //選黃色
+								document.getElementById(id).style.backgroundColor = "yellow";  //將格子變黃
+								if(a >= 0){
+									if(color == "yellow"){
+										a = a + 1;
+									}
+									else if(color == "blue"){
+										a = a - 1;
+									}
+								}
+							}
+							else if(mySign == "blue"){
+								if(a >= 0){
+									//box[box_id] = box[box_id] + 1;
+									document.getElementById(id).style.backgroundColor = "blue"
+									if(color == "blue"){
+										a = a + 1;
+									}
+									else if(color == "yellow"){
+										a = a - 1;
+									}
+								}
+								//a = a + 1;
+							}
+							// if(a >= 0){
+							// 	if(mySign == "yellow"){
+							// 	//box[id] = box[id] + 1;
+							// 	a = a + 1;
+							// 	document.getElementById(id).style.backgroundColor = "yellow"
+							// 	//const cells = document.querySelectorAll(".user1");
+							// 	}
+							// 	else if(mySign == "blue"){
+							// 		a = a + 1;
+							// 		document.getElementById(id).style.backgroundColor = "blue"
+							// 	}
+							// }
+							
+							//防禦力加 1
+							
 							//把格子id跟使用的符號傳給socket server
-							s.send(id+","+mySign);
-						}
+							//s.send(id+","+mySign);
+							s.send(id+","+ a);
+						//}
 					}
 				});
 			}
@@ -65,18 +136,28 @@ source: https://gist.github.com/tanmaykm/5111225
 			//設定格子的符號
 			function setCell(id,sign) {
 				document.getElementById(id).innerHTML = sign;
+				
+				//document.querySelectorAll(id) = 
 			}
 		</script>		
 	</head>
 <body onload="doInit()">
 	搶地遊戲<br/>
-	請輸入使用的顏色<input type='text' value='O' id='sign'>
+	請選擇輸入yellow或blue ： <input type='text' value='' id='sign'>
+
+	<div id="timer">
+		30
+	</div>
+	<button onclick="start()">start</button>
+
 	<table border="10" width="500px" height="500px">
-	<tr><td class='cell' id='00'>0</td><td  class='cell' id='10'>0</td><td  class='cell' id='20'>0</td><td  class='cell' id='30'>0</td><td  class='cell' id='40'>0</td></tr>
-	<tr><td class='cell' id='01'>0</td><td  class='cell' id='11'>0</td><td  class='cell' id='21'>0</td><td  class='cell' id='31'>0</td><td  class='cell' id='41'>0</td></tr>
-	<tr><td class='cell' id='02'>0</td><td  class='cell' id='12'>0</td><td  class='cell' id='22'>0</td><td  class='cell' id='32'>0</td><td  class='cell' id='42'>0</td></tr>
-	<tr><td class='cell' id='03'>0</td><td  class='cell' id='13'>0</td><td  class='cell' id='23'>0</td><td  class='cell' id='33'>0</td><td  class='cell' id='43'>0</td></tr>
-	<tr><td class='cell' id='04'>0</td><td  class='cell' id='14'>0</td><td  class='cell' id='24'>0</td><td  class='cell' id='34'>0</td><td  class='cell' id='44'>0</td></tr>	
+	<!-- <table class="table"> -->
+	<tr><td class='cell' id='0'>0</td><td  class='cell' id='1'>0</td><td  class='cell' id='2'>0</td><td  class='cell' id='3'>0</td><td  class='cell' id='4'>0</td></tr>
+	<tr><td class='cell' id='5'>0</td><td  class='cell' id='6'>0</td><td  class='cell' id='7'>0</td><td  class='cell' id='8'>0</td><td  class='cell' id='9'>0</td></tr>
+	<tr><td class='cell' id='10'>0</td><td  class='cell' id='11'>0</td><td  class='cell' id='12'>0</td><td  class='cell' id='13'>0</td><td  class='cell' id='14'>0</td></tr>
+	<tr><td class='cell' id='15'>0</td><td  class='cell' id='16'>0</td><td  class='cell' id='17'>0</td><td  class='cell' id='18'>0</td><td  class='cell' id='19'>0</td></tr>
+	<tr><td class='cell' id='20'>0</td><td  class='cell' id='21'>0</td><td  class='cell' id='22'>0</td><td  class='cell' id='23'>0</td><td  class='cell' id='24'>0</td></tr>	
 	</table>
+	
 </body>
 </html>
